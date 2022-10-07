@@ -2,23 +2,29 @@
   <div class="container  text-center tabla-hotel">
 
 
-    <h1 class="titulo-hotel"><i class="bi bi-building mx-3"></i>habitación</h1>
+    <h2 class="titulo-hotel"><i class="bi bi-building">
+        <div id="nameH"></div>
+      </i> </h2>
+    <h6 id="numRooms" class="container text-start mb-5"></h6>
     <div class="row g-3">
       <div class="row g-3 ">
         <div class="col-6">
           <label for="exampleFormControlInput1" class="form-label ">Tipo de Havitación</label>
-          <select class="form-select text-start" aria-label="Default select example" v-model="hotel.room_type_id">
-            <option v-for="tipoAcom in Acomodacion" :value="tipoAcom.id" :key="tipoAcom.id">{{tipoAcom.name}}</option>
-
+          
+          <select class="form-select" v-model="hotel.room_type_id">
+            <option v-for="tipoa in Acomodacion" :value="tipoa.id" :key="tipoa.id">
+              {{
+              tipoa.name }}</option>
           </select>
 
         </div>
         <div class="col-6">
           <label for="exampleFormControlInput1" class="form-label ">Acomodación</label>
-          <select class="form-select" aria-label="Default select example" v-model="hotel.accommodation_id">
-            <option v-for="room in romms" :value="room.id" :key="room.id">{{room.name}}</option>
+          
 
-
+          <select class="form-select" v-model="hotel.accommodation_id">
+            <option v-for="room in romms" :value="room.id" :key="room.id">{{
+            room.name }}</option>
           </select>
         </div>
       </div>
@@ -36,110 +42,83 @@
     </div>
 
     <div class="container text-end mb-3">
-      <button class="btn btn-primary" @click="Actualizar" type="submit">Actualizar Habitación</button>
+      <button class="btn btn-primary" @click="Actualizar()" type="submit">Actualizar Habitación</button>
 
     </div>
   </div>
+
+  
 
 
 </template>
 
 <script>
+
+
 import axios from 'axios'
 export default {
-
   beforeMount() {
-
-
-
     axios
-    .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/room-types')
-    .then(response => (this.Acomodacion = response.data))
-
-
-      axios
-        .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/accommodation-types')
-        .then(response => (this.romms = response.data))
-
-        axios
-      .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/hotels/'+ this.$route.params.id)
-      .then(response => (this.hote = response.data))
-
-
-
+      .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/room-types')
+      .then(response => (this.Acomodacion = response.data))
+    axios
+      .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/accommodation-types')
+      .then(response => (this.romms = response.data))
+    axios
+      .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/hotels/' + this.$route.params.id)
+      .then(response => {
+        this.hotels = response.data
+        document.getElementById("nameH").innerText = this.hotels.data.name;
+        document.getElementById("numRooms").innerText = "Número de habitaciones: " + this.hotels.data.num_rooms;
+      })
   },
-
   data() {
     return {
       errores: {
         nit: null
       },
       info: null,
-      Acomodacion:[],
-      romms:[],
-      hote:[],
-
+      Acomodacion: [],
+      romms: [],
       hotel: {
         hotel_id: this.$route.params.id,
         room_type_id: null,
         accommodation_id: null,
-        quantity: null,
-
-
+        quantity: null
       },
-
-
-
-
     }
-
+  },
+  mounted: function () {
+    axios
+      .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms/show/' + this.$route.params.id)
+      .then(response => {
+        this.hotel = response.data.data;
+        console.log(this.hotel)
+      })
   },
   methods: {
-    // Enviar2() {
-    //   axios({
-    //     method: 'post',
-    //     url: 'http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms',
-    //     data: this.hotel,
-    //     responseType: 'json',
-    //   })
-    //     .then(response => {
-    //       this.info = response.data.message
-
-    //       this.hotel.hotel_id = null
-    //       this.hotel.room_type_id = null
-    //       this.hotel.accommodation_id = null
-    //       this.hotel.quantity = null
-
-    //     })
-    //     .catch(error => {
-    //       this.errores = error.response.data.errors
-
-    //     })
-    // },
-    Actualizar(){
-      axios({
-        method: 'post',
-        url: 'http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms',
-        data: this.hotel,
-        responseType: 'json',
-      })
-        .then(response => {
-          this.info = response.data.message
-
-          this.hotel.hotel_id = null
-          this.hotel.room_type_id = null
-          this.hotel.accommodation_id = null
-          this.hotel.quantity = null
-
+    async Actualizar() {
+        // this.errors = Objects
+        this.error = false
+        this.info = false
+        axios({
+            method: 'put',
+            url: 'http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms/' + this.$route.params.id,
+            data: this.hotel,
+            responseType: 'json',
         })
-        .catch(error => {
-          this.errores = error.response.data.errors
+            .then(response => {
+                this.info = response.data.message
+                this.Alerta(this.info, 'alert-success')
+            })
+            .catch(error => {
+                this.errores = error.response.data.message
+                console.log("Errores" + this.errores)
+                this.Alerta(this.errores, 'alert-danger')
+            })
+    },
+        
+    }
+  }
 
-        })
-
-}
-
-  },
-
-}
 </script>

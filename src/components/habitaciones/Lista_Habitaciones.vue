@@ -23,8 +23,8 @@
 
 
 
-          <td><a class="btn btn-warning" @click="Editar_Habitacion()" role="button">Editar</a></td>
-          <td><a class="btn btn-danger" @click="Eliminar" role="button">Eliminar</a></td>
+          <td><a class="btn btn-warning" @click="Editar_Habitacion(hotel.id)" role="button">Editar</a></td>
+          <td><a class="btn btn-danger" @click="Eliminar(hotel.id)" role="button">Eliminar</a></td>
         </tr>
 
 
@@ -54,15 +54,15 @@ export default {
       document.getElementById("numHabi").innerText="Numero de Habitaciones: "+ this.rooms.data.num_rooms;
 
       
+      axios
+        .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms/' + this.$route.params.id)
+        .then(response => (this.hotels2 = response.data.data))
       
       
       
   })
 
 
-      axios
-        .get('http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms/' + this.$route.params.id)
-        .then(response => (this.hotels2 = response.data.data))
 
         
   },
@@ -92,38 +92,55 @@ export default {
       })
 
     },
-    Editar_Habitacion() {
-      this.$router.push({
-      name: 'Editar_Habitacion',
-        params: {
-          id: this.$route.params.id
-        }
-    })
-  },
+    Editar_Habitacion(id) {
+            this.$router.push({ name: 'Editar_Habitacion', params: { id } })
+        },
+  //   Editar_Habitacion() {
+  //     this.$router.push({
+  //     name: 'Editar_Habitacion',
+  //       params: {
+  //         id: this.$route.params.id
+  //       }
+  //   })
+  // },
 
-  
-  Eliminar(){
-        if (confirm('Esta seguro de eliminar la presente Habitación?')) {
-        axios({
-            method: 'delete',
-            url: 'http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms/'+this.$route.params.id,
-            responseType: 'json', 
-        }) 
-        .then(response => {  
-            this.info = response.data.message
-            this.hotel = []
-            this.ocultar = 'hidden'
+  async Eliminar(id) {
+            console.log(id);
+            var opcion = confirm("Seguro que desea eliminar este hotel?");
+            if (opcion == true) {
+                axios({
+                    method: 'DELETE',
+                    url: 'http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms/' + id,
+                    responseType: 'json',
+                })
+                    .then(response => this.Alerta(response.statusText, 'alert-success'))
+                    .catch(error => this.Alerta(error.response, 'alert-danger'))
+            }   
+        },
+  // Eliminar(){
+  // if (confirm('Esta seguro de eliminar el presente hotel?')) {
+  //       axios({
+  //           method: 'DELETE',
+  //           url: 'http://ec2-44-201-108-206.compute-1.amazonaws.com/decameron/api/rooms/'+this.$route.params.id,
+  //           responseType: 'json', 
+  //       }) 
+  //       .then(response => {  
+  //           // this.info = response.data.message
+          
+  //           this.info = response.data.message
+  //           // this.hotel = []
+  //           // this.ocultar = 'hidden'
 
-        })
-        .catch(error => {
-            this.errores = error.response.data.errors
-            this.info = null
-        })
+  //       })
+  //       .catch(error => {
+  //           this.errores = error.response.data.errors
+  //           this.info = null
+  //       })
 
 
-      }
+  //     }
       
-    },
+  //   },
 
  
 }
